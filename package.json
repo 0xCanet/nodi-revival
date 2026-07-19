@@ -1,0 +1,31 @@
+{
+  "name": "nodi-revival",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Community-led NOD-I operating stack, app store and SDK",
+  "license": "MIT",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "build": "npm run build -w @nodi/sdk && npm run build -w @nodi/api && npm run build -w @nodi/control-ui",
+    "check": "npm run test && npm run build && npm run docs:check && npm run manifests:check",
+    "dev": "npm run dev -w @nodi/api",
+    "dev:ui": "npm run dev -w @nodi/control-ui",
+    "docs:check": "node scripts/check-docs.mjs",
+    "manifests:check": "npm run build -w @nodi/sdk && node packages/sdk/dist/cli.js validate examples/hello-nodi/app.nodi.json && node packages/sdk/dist/cli.js validate catalog/bitcoin-node/app.nodi.json && node packages/sdk/dist/cli.js validate catalog/lottery-miner/app.nodi.json",
+    "test": "npm run test -w @nodi/sdk && npm run test -w @nodi/api"
+  },
+  "engines": {
+    "node": ">=22.12.0",
+    "npm": ">=10"
+  },
+  "devDependencies": {
+    "@types/node": "26.1.1",
+    "tsx": "4.23.1",
+    "typescript": "7.0.2"
+  }
+}

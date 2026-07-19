@@ -1,0 +1,47 @@
+{
+  "apiVersion": "nodi.community/v1",
+  "kind": "App",
+  "metadata": {
+    "id": "lottery-miner",
+    "name": "Lottery Miner",
+    "version": "0.1.0",
+    "summary": "Mineur CPU SHA-256d expérimental, limité et désactivé par défaut",
+    "description": "Construit cpuminer 2.5.1 depuis sa source GPL-2.0 et se connecte à un pool Stratum configurable. La probabilité de trouver un bloc avec un CPU est infime.",
+    "author": {
+      "name": "NOD-I Revival contributors",
+      "url": "https://github.com/0xCanet/nodi-revival"
+    },
+    "license": "GPL-2.0-only",
+    "repository": "https://github.com/0xCanet/nodi-revival"
+  },
+  "spec": {
+    "architectures": ["arm64", "amd64"],
+    "runtime": {
+      "type": "compose",
+      "composeFile": "compose.yaml",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/0xCanet/nodi-revival",
+        "ref": "v0.1.0"
+      }
+    },
+    "permissions": ["hardware.temperature.read", "network.outbound", "storage.persistent"],
+    "resources": {
+      "cpu": 1,
+      "memoryMb": 128,
+      "storageMb": 64
+    },
+    "ui": {
+      "route": "/miner",
+      "screenSummary": true
+    },
+    "healthcheck": {
+      "type": "command",
+      "target": "test -f /data/miner/state.json",
+      "intervalSeconds": 15
+    }
+  },
+  "governance": {
+    "status": "core"
+  }
+}

@@ -1,126 +1,140 @@
 # NOD-I Revival
 
-Initiative communautaire pour remettre les boîtiers NOD-I en service avec une
-base moderne, documentée et maintenable.
+NOD-I Revival remet les boîtiers NOD-I en service avec un socle communautaire,
+auditable et sans dépendance à l’infrastructure historique.
 
-> [!IMPORTANT]
-> Ce projet est une initiative indépendante et non officielle. Il n'est pas
-> affilié à l'équipe ou à la société NOD-I d'origine. Le code historique reste
-> soumis aux licences de ses dépôts respectifs.
+Le MVP fournit déjà quatre surfaces cohérentes :
 
-## Notre objectif
+- un nœud Bitcoin Core 31.0, pruned et sans wallet embarqué ;
+- un mineur loterie SHA-256d, construit depuis les sources et désactivé par défaut ;
+- un store open source avec manifeste SDK, propositions et vote communautaire ;
+- un cockpit web et un agent pour écran ST7789 320×240.
 
-Livrer rapidement une **NOD-I Community Edition** que l'on peut installer,
-mettre à jour, diagnostiquer et restaurer sans dépendre de l'ancienne
-infrastructure NOD-I.
+> [!WARNING]
+> Pré-alpha. N’utilisez pas ce projet pour conserver des fonds. Le wallet, les
+> seeds, le formatage automatique de disque et l’exécution distante de Compose
+> communautaires sont volontairement hors périmètre.
 
-Le premier jalon reste volontairement limité :
+## Voir le MVP en 2 minutes
 
-- Bitcoin Core sur ARM64 et x86_64 ;
-- installation reproductible avec Docker Compose ;
-- interface locale simple et état de synchronisation ;
-- stockage persistant, sauvegarde et restauration documentées ;
-- accès distant privé, sans exposer le RPC Bitcoin sur Internet ;
-- validation sur plusieurs boîtiers NOD-I réels.
+Le mode démo ne nécessite ni Docker ni nœud Bitcoin :
 
-Les sources publiques historiques sont disponibles dans
-[l'organisation GitHub NOD-I](https://github.com/NOD-I). Elles servent de
-référence et certaines briques pourront être réutilisées après vérification de
-leur licence, de leur sécurité et de leur compatibilité actuelle.
+```bash
+npm install
+NODI_DEMO=true npm run dev
+```
 
-## État du projet
+Dans un autre terminal :
 
-**Pré-alpha — organisation et reconstruction du socle.**
+```bash
+npm run dev:ui
+```
 
-Le dépôt ne doit pas encore être utilisé avec des fonds réels. Les anciens
-scripts système, mécanismes de wallet et artefacts d'installation ne doivent
-jamais être exécutés sur un boîtier sans audit préalable.
+Ouvrez <http://localhost:5173>. Le proxy Vite envoie `/api` vers le port 8787.
 
-## Priorités
+## Lancer la stack sur un boîtier
 
-### MVP — Bitcoin d'abord
+Prérequis : Debian/Ubuntu 64 bits, Docker Engine avec Compose v2, au moins
+250 Go libres pour le profil pruned recommandé.
 
-- [ ] Inventorier les modèles de boîtiers et configurations existantes
-- [ ] Créer un `compose.yaml` minimal et reproductible
-- [ ] Démarrer Bitcoin Core avec une configuration sûre par défaut
-- [ ] Restaurer ou reconstruire un dashboard local minimal
-- [ ] Ajouter installation, mise à jour, sauvegarde et diagnostic
-- [ ] Tester un redémarrage complet sans perte de données
-- [ ] Valider l'installation sur au moins trois boîtiers
-- [ ] Publier une première release communautaire
+```bash
+./scripts/bootstrap.sh
+docker compose up -d --build
+```
 
-### Après le MVP
+Le cockpit devient disponible sur `http://ADRESSE_DU_BOITIER:8080`. Le port P2P
+Bitcoin `8333` est publié ; le RPC `8332` reste uniquement sur le réseau Docker
+privé. Les données survivent aux redémarrages dans les volumes `bitcoin-data`
+`store-data` et `miner-data`.
 
-- [ ] Intégration propre de l'écran, du ventilateur et des LED
-- [ ] Découverte locale avec `nodi.local`
-- [ ] Image système ou installateur pour un boîtier vierge
-- [ ] Lightning/LND après audit des sauvegardes et de la sécurité
-- [ ] Catalogue communautaire d'applications
+Consultez [le runbook](docs/RUNBOOK.md) avant une installation réelle.
 
-### Hors périmètre pour le moment
+Pour remettre d’abord le cockpit et le store en ligne sans démarrer Bitcoin ni
+monter un ancien disque, utilisez le
+[mode récupération](docs/RUNBOOK.md#mode-cockpit-seulement). C’est le mode
+recommandé pour inventorier un boîtier d’occasion ou préserver une blockchain
+existante avant sauvegarde.
 
-- wallet multichaîne et gestion de seeds ;
-- conservation de fonds réels ;
-- mining et applications expérimentales ;
-- dépendance aux anciens domaines, registres Docker ou dépôts Debian NOD-I ;
-- exécution automatique de scripts pouvant formater ou repartitionner un disque.
+## Activer le mineur loterie
 
-## Comment contribuer
+Le mineur ne démarre jamais implicitement. Sa probabilité de trouver un bloc
+avec un CPU est extrêmement faible et son coût électrique peut dépasser tout
+gain éventuel.
 
-Développeurs, administrateurs système, designers, rédacteurs et propriétaires
-de boîtiers peuvent tous aider.
+```bash
+./scripts/configure-miner.sh bc1q_votre_adresse
+docker compose --profile miner up -d --build lottery-miner
+```
 
-1. Consultez les issues existantes et choisissez une tâche non assignée.
-2. Commentez l'issue avant de commencer pour éviter les doublons.
-3. Forkez le dépôt et créez une branche courte, par exemple
-   `feat/bitcoin-compose` ou `docs/raspberry-pi-5`.
-4. Faites une modification ciblée, documentée et testable.
-5. Ouvrez une pull request en expliquant le matériel utilisé, les tests
-   effectués et les limites connues.
+Le seuil thermique par défaut est 75 °C et le nombre de threads par défaut est
+1. Les détails et l’arrêt d’urgence sont dans [le runbook](docs/RUNBOOK.md#mineur-loterie).
 
-Pour proposer une direction importante, ouvrez d'abord une issue de discussion.
-Les changements de stockage, réseau, authentification, wallet ou scripts lancés
-avec `sudo` nécessitent une revue de sécurité avant fusion.
+## Créer une app pour le store
 
-## Tester avec un boîtier NOD-I
+```bash
+cp -R examples/hello-nodi mon-app
+npm run build -w @nodi/sdk
+node packages/sdk/dist/cli.js validate mon-app/app.nodi.json
+```
 
-Les retours matériels sont particulièrement précieux. Dans une issue, indiquez
-si possible :
+Le fichier `app.nodi.json` décrit la source immuable, les permissions, les
+ressources et le healthcheck. Une app entre comme `candidate`, puis la
+communauté inspecte son code et vote. Une approbation produit seulement une
+demande d’installation auditable : le MVP n’exécute jamais un Compose distant
+depuis une requête HTTP.
 
-- modèle du boîtier ou du Raspberry Pi ;
-- architecture (`arm64` ou `x86_64`) ;
-- mémoire disponible ;
-- type et capacité du disque ;
-- système d'exploitation et version ;
-- résultat de `docker version` et `docker compose version` ;
-- comportement de l'écran, du ventilateur, des LED et du NVMe ;
-- logs utiles après suppression de toute donnée sensible.
+- [Guide SDK](docs/SDK.md)
+- [Règles de gouvernance](docs/GOVERNANCE.md)
+- [Exemple complet](examples/hello-nodi/app.nodi.json)
+- [JSON Schema](packages/sdk/schema/app-manifest.schema.json)
 
-Ne publiez jamais de seed, clé privée, mot de passe, cookie, token, adresse IP
-publique ou fichier `.env` complet.
+## Écran physique 320×240
 
-## Règles techniques
+Une prévisualisation PNG peut être générée sans écran :
 
-- Aucun secret ou identifiant personnel dans Git.
-- Aucun port RPC ou interface d'administration exposé publiquement par défaut.
-- Les scripts destructifs doivent demander une confirmation explicite et
-  vérifier précisément leur cible.
-- Chaque service doit disposer d'un healthcheck et de données persistantes.
-- Les configurations doivent fonctionner sur ARM64 et x86_64 ou documenter
-  clairement leur limitation.
-- Toute reprise de code historique doit conserver sa licence et son attribution.
-- Une pull request doit rester assez petite pour être testée sur du vrai
-  matériel.
+```bash
+python3 -m venv .venv-screen
+.venv-screen/bin/pip install -r hardware/screen-agent/requirements-preview.txt
+.venv-screen/bin/python hardware/screen-agent/screen_agent.py \
+  --fixture hardware/screen-agent/fixture.json \
+  --output hardware/screen-agent/preview.png
+```
 
-## Définition du premier succès
+Sur le boîtier, suivez [le guide écran](docs/HARDWARE_SCREEN.md). L’écran est un
+cockpit de lecture : vote, configuration et installation restent dans le web.
 
-Le MVP sera considéré comme utilisable lorsqu'un propriétaire pourra partir
-d'un système Debian/Ubuntu propre, lancer une seule procédure d'installation,
-ouvrir l'interface en local, redémarrer le boîtier sans perdre les données, puis
-effectuer une sauvegarde et une restauration documentées.
+## Architecture et documentation
 
-## Licence
+- [Architecture et limites](docs/ARCHITECTURE.md)
+- [Parcours UX Stark](docs/UX.md)
+- [Sécurité et modèle de menace](docs/SECURITY.md)
+- [Exploitation, sauvegarde et restauration](docs/RUNBOOK.md)
+- [Matériel NOD-I v1 et récupération](docs/HARDWARE_NODI_V1.md)
+- [Contribution](CONTRIBUTING.md)
+- [Index pour LLM](llms.txt)
+- [Convention pour agents](AGENTS.md)
 
-Les contributions originales de ce dépôt sont publiées sous licence MIT. Les
-composants provenant d'autres dépôts conservent leur licence et leur historique
-d'attribution d'origine.
+Validation complète :
+
+```bash
+npm run check
+docker compose config
+```
+
+## Ce qui est réellement implémenté
+
+| Capacité | État MVP | Limite connue |
+|---|---|---|
+| Bitcoin Core | image ARM64/AMD64, checksum vérifié, suivi RPC | synchronisation réelle à tester sur plusieurs boîtiers |
+| Mineur loterie | build source épinglé, opt-in, pause thermique | pas une promesse de rendement |
+| Store | catalogue, validation, propositions, vote, audit | identité locale non résistante aux attaques Sybil |
+| Installation d’app | demande enregistrée après approbation | packaging/revue encore manuels |
+| Écran | rendu PNG et pilote ST7789 testé sur un boîtier NOD-I v1 | brochage à revalider sur les autres révisions |
+
+## Origine et licence
+
+Ce projet est indépendant et non officiel. Les dépôts de
+[l’organisation NOD-I](https://github.com/NOD-I) sont des références
+historiques ; leurs binaires opaques et scripts destructifs ne sont pas repris.
+Les contributions de ce dépôt sont sous [licence MIT](LICENSE). cpuminer est
+construit depuis sa source GPL-2.0 et conserve sa licence dans son image.

@@ -1,0 +1,13 @@
+.git
+.github
+.env
+node_modules
+**/dist
+**/*.tsbuildinfo
+**/__pycache__
+hardware/screen-agent/.venv
+hardware/screen-agent/preview.png
+data
+backups
+*.log
+.DS_Store

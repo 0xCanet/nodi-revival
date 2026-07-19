@@ -1,0 +1,47 @@
+{
+  "apiVersion": "nodi.community/v1",
+  "kind": "App",
+  "metadata": {
+    "id": "hello-nodi",
+    "name": "Hello NOD-I",
+    "version": "0.1.0",
+    "summary": "Exemple minimal pour apprendre le SDK",
+    "description": "Une page statique avec healthcheck qui démontre la structure minimale d'une application communautaire.",
+    "author": {
+      "name": "NOD-I Revival contributors",
+      "url": "https://github.com/0xCanet/nodi-revival"
+    },
+    "license": "MIT",
+    "repository": "https://github.com/0xCanet/nodi-revival"
+  },
+  "spec": {
+    "architectures": ["arm64", "amd64"],
+    "runtime": {
+      "type": "compose",
+      "composeFile": "compose.yaml",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/0xCanet/nodi-revival",
+        "ref": "v0.1.0"
+      }
+    },
+    "permissions": ["network.inbound"],
+    "resources": {
+      "cpu": 0.25,
+      "memoryMb": 64,
+      "storageMb": 16
+    },
+    "ui": {
+      "route": "/apps/hello-nodi",
+      "screenSummary": false
+    },
+    "healthcheck": {
+      "type": "http",
+      "target": "/health",
+      "intervalSeconds": 30
+    }
+  },
+  "governance": {
+    "status": "candidate"
+  }
+}

@@ -1,0 +1,49 @@
+name: App proposal
+description: Proposer une application open source au vote communautaire
+title: "[app] "
+labels: ["app-proposal"]
+body:
+  - type: input
+    id: repository
+    attributes:
+      label: Dépôt public
+      description: URL du code source et commit ou tag immuable
+    validations:
+      required: true
+  - type: input
+    id: license
+    attributes:
+      label: Licence SPDX
+    validations:
+      required: true
+  - type: textarea
+    id: purpose
+    attributes:
+      label: Utilité pour la communauté
+    validations:
+      required: true
+  - type: textarea
+    id: permissions
+    attributes:
+      label: Permissions et ports demandés
+      description: Copiez la liste du manifeste et justifiez chaque permission.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Tests réalisés
+      description: Architecture, matériel, healthcheck, désinstallation et limites.
+    validations:
+      required: true
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Confirmation
+      options:
+        - label: Le manifeste passe la CLI du SDK.
+          required: true
+        - label: L’app ne monte pas le Docker socket et ne requiert pas le mode privilégié.
+          required: true
+        - label: Je comprends que le vote ne remplace pas la revue de sécurité.
+          required: true

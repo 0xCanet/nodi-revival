@@ -1,0 +1,142 @@
+name: nodi
+
+services:
+  bitcoin:
+    build:
+      context: .
+      dockerfile: infrastructure/bitcoin/Dockerfile
+    restart: unless-stopped
+    environment:
+      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:-nodi}
+      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:?Run ./scripts/bootstrap.sh first}
+      BITCOIN_PRUNE_MIB: ${BITCOIN_PRUNE_MIB:-200000}
+      BITCOIN_DBCACHE_MIB: ${BITCOIN_DBCACHE_MIB:-450}
+    ports:
+      - "8333:8333"
+    volumes:
+      - bitcoin-data:/data
+    networks:
+      - nodi-private
+    healthcheck:
+      test: ["CMD-SHELL", "bitcoin-cli -datadir=/data getblockchaininfo >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      bitcoin:
+        condition: service_started
+    environment:
+      PORT: 8787
+      BITCOIN_RPC_URL: http://bitcoin:8332
+      BITCOIN_RPC_USER: ${BITCOIN_RPC_USER:-nodi}
+      BITCOIN_RPC_PASSWORD: ${BITCOIN_RPC_PASSWORD:?Run ./scripts/bootstrap.sh first}
+      STORE_DATA_PATH: /data/store/store.json
+      CATALOG_DIRS: /app/catalog,/app/examples
+      NODI_DATA_PATH: /data/store
+      MINER_STATE_PATH: /data/miner/state.json
+      MINER_LOG_PATH: /data/miner/miner.log
+      STORE_QUORUM: ${STORE_QUORUM:-5}
+      STORE_APPROVAL_PERCENT: ${STORE_APPROVAL_PERCENT:-66}
+      MINER_MAX_TEMP_C: ${MINER_MAX_TEMP_C:-75}
+    volumes:
+      - store-data:/data/store
+      - miner-data:/data/miner:ro
+    networks:
+      - nodi-private
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/api/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  control-ui:
+    build:
+      context: .
+      dockerfile: apps/control-ui/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${NODI_HTTP_PORT:-8080}:8080"
+    networks:
+      - nodi-private
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/api/health >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  lottery-miner:
+    profiles: ["miner"]
+    build:
+      context: .
+      dockerfile: infrastructure/lottery-miner/Dockerfile
+    restart: unless-stopped
+    cpus: "${MINER_CPU_LIMIT:-1.0}"
+    mem_limit: 256m
+    environment:
+      MINER_ENABLED: ${MINER_ENABLED:-false}
+      MINER_POOL: ${MINER_POOL:-stratum+tcp://public-pool.io:21496}
+      MINER_ADDRESS: ${MINER_ADDRESS:-}
+      MINER_WORKER: ${MINER_WORKER:-nodi}
+      MINER_THREADS: ${MINER_THREADS:-1}
+      MINER_MAX_TEMP_C: ${MINER_MAX_TEMP_C:-75}
+      HOST_THERMAL_PATH: /host-thermal/thermal_zone0/temp
+    volumes:
+      - miner-data:/data/miner
+      - /sys/class/thermal:/host-thermal:ro
+    networks:
+      - nodi-private
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD-SHELL", "test -s /data/miner/state.json"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+networks:
+  nodi-private:
+    driver: bridge
+
+volumes:
+  bitcoin-data:
+  store-data:
+  miner-data:

@@ -1,0 +1,47 @@
+{
+  "apiVersion": "nodi.community/v1",
+  "kind": "App",
+  "metadata": {
+    "id": "bitcoin-node",
+    "name": "Bitcoin Node",
+    "version": "0.1.0",
+    "summary": "Validateur Bitcoin Core local et auto-hébergé",
+    "description": "Bitcoin Core 31.0, RPC privé, stockage persistant et mode pruned adapté au boîtier 1 To.",
+    "author": {
+      "name": "NOD-I Revival contributors",
+      "url": "https://github.com/0xCanet/nodi-revival"
+    },
+    "license": "MIT",
+    "repository": "https://github.com/0xCanet/nodi-revival"
+  },
+  "spec": {
+    "architectures": ["arm64", "amd64"],
+    "runtime": {
+      "type": "compose",
+      "composeFile": "compose.yaml",
+      "source": {
+        "type": "git",
+        "url": "https://github.com/0xCanet/nodi-revival",
+        "ref": "v0.1.0"
+      }
+    },
+    "permissions": ["network.inbound", "network.outbound", "storage.persistent"],
+    "resources": {
+      "cpu": 2,
+      "memoryMb": 2048,
+      "storageMb": 200000
+    },
+    "ui": {
+      "route": "/bitcoin",
+      "screenSummary": true
+    },
+    "healthcheck": {
+      "type": "command",
+      "target": "bitcoin-cli getblockchaininfo",
+      "intervalSeconds": 30
+    }
+  },
+  "governance": {
+    "status": "core"
+  }
+}

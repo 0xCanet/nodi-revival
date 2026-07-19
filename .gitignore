@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+apps/control-ui/vite.config.js
+apps/control-ui/vite.config.d.ts
+.env
+data/
+*.log
+.DS_Store
+.coverage/
+.pytest_cache/
+__pycache__/
+hardware/screen-agent/.venv/
+hardware/screen-agent/preview.png

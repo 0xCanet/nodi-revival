@@ -1,0 +1,12 @@
+{
+  "apiUrl": "http://127.0.0.1:8080/api/screen",
+  "width": 320,
+  "height": 240,
+  "rotation": 0,
+  "spiPort": 0,
+  "spiChipSelect": 0,
+  "dcPin": 23,
+  "backlightPin": 6,
+  "resetPin": 24,
+  "pollSeconds": 5
+}

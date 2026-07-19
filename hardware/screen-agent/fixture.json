@@ -1,0 +1,42 @@
+{
+  "generatedAt": "2026-07-19T12:00:00.000Z",
+  "bitcoin": {
+    "status": "syncing",
+    "chain": "main",
+    "blocks": 901842,
+    "headers": 902114,
+    "progress": 97.42,
+    "peers": 12,
+    "version": 310000,
+    "pruned": true,
+    "sizeOnDisk": 188743680000
+  },
+  "miner": {
+    "status": "disabled",
+    "enabled": false,
+    "pool": "public-pool.io:21496",
+    "worker": "nodi",
+    "threads": 1,
+    "hashRateKh": 0,
+    "acceptedShares": 0,
+    "bestDifficulty": 0,
+    "temperatureC": 51.8,
+    "updatedAt": "2026-07-19T12:00:00.000Z",
+    "message": "Configuration requise avant le premier démarrage"
+  },
+  "device": {
+    "hostname": "nodi",
+    "architecture": "aarch64",
+    "uptimeSeconds": 86400,
+    "loadAverage": [0.22, 0.18, 0.14],
+    "memoryUsedPercent": 37.5,
+    "temperatureC": 51.8,
+    "dataFreeBytes": 612032839680
+  },
+  "store": { "core": 2, "approved": 0, "candidates": 1 },
+  "attention": {
+    "level": "info",
+    "code": "bitcoin.syncing",
+    "message": "Bitcoin synchronise 97.42%"
+  }
+}

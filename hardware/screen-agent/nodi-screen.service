@@ -1,0 +1,21 @@
+[Unit]
+Description=NOD-I 320x240 status screen
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nodi-screen
+Group=nodi-screen
+WorkingDirectory=/opt/nodi-screen
+ExecStart=/opt/nodi-screen/venv/bin/python /opt/nodi-screen/screen_agent.py --config /etc/nodi/screen.json
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/dev/spidev0.0 /dev/gpiomem
+
+[Install]
+WantedBy=multi-user.target

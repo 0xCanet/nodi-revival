@@ -1,0 +1,6 @@
+Pillow==11.3.0
+requests==2.32.5
+numpy==1.26.4
+spidev==3.8
+RPi.GPIO==0.7.1
+ST7789==0.0.4

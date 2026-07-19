@@ -1,0 +1,24 @@
+# NOD-I Revival
+
+> Community operating stack for NOD-I hardware: Bitcoin Core, opt-in lottery
+> mining, an open-source app store, a manifest SDK and a 320x240 status screen.
+
+## Start here
+
+- [Repository overview](README.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [UX contract](docs/UX.md)
+- [App SDK](docs/SDK.md)
+- [Store governance](docs/GOVERNANCE.md)
+- [Security model](docs/SECURITY.md)
+- [Hardware screen](docs/HARDWARE_SCREEN.md)
+- [NOD-I v1 hardware and recovery](docs/HARDWARE_NODI_V1.md)
+- [Operations runbook](docs/RUNBOOK.md)
+- [Agent working agreement](AGENTS.md)
+
+## Machine-readable contracts
+
+- [App manifest JSON Schema](packages/sdk/schema/app-manifest.schema.json)
+- [Bitcoin node manifest](catalog/bitcoin-node/app.nodi.json)
+- [Lottery miner manifest](catalog/lottery-miner/app.nodi.json)
+- [Example community app](examples/hello-nodi/app.nodi.json)
