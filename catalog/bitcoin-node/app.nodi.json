@@ -29,7 +29,7 @@
     "resources": {
       "cpu": 2,
       "memoryMb": 2048,
-      "storageMb": 200000
+      "storageMb": 120000
     },
     "ui": {
       "route": "/bitcoin",

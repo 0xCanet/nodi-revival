@@ -50,7 +50,8 @@ lottery-miner ---- state volume (read-only) --> core-api
 
 ## Persistence
 
-- Bitcoin chain data: Docker volume `bitcoin-data`.
+- Bitcoin chain data: Docker volume `bitcoin-data` by default, or an explicit
+  absolute host datadir through `BITCOIN_DATA_PATH`.
 - Store proposals, votes and audit events: volume `store-data` en lecture/écriture pour l’API.
 - Miner state and logs: volume `miner-data`, lu en lecture seule par l’API.
 - No wallet or seed is created by the MVP.

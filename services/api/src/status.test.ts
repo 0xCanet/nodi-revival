@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { getMinerStatus } from './status.js'
+import { bitcoinRpcTimeoutMs, getMinerStatus } from './status.js'
+
+test('uses a safe Bitcoin RPC timeout', () => {
+  assert.equal(bitcoinRpcTimeoutMs(undefined), 15000)
+  assert.equal(bitcoinRpcTimeoutMs('12000'), 12000)
+  assert.equal(bitcoinRpcTimeoutMs('invalid'), 15000)
+  assert.equal(bitcoinRpcTimeoutMs('500'), 15000)
+})
 
 test('reports an unconfigured opt-in miner as disabled', async () => {
   const previousEnabled = process.env.MINER_ENABLED

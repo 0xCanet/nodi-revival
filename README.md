@@ -34,18 +34,32 @@ Ouvrez <http://localhost:5173>. Le proxy Vite envoie `/api` vers le port 8787.
 
 ## Lancer la stack sur un boîtier
 
-Prérequis : Debian/Ubuntu 64 bits, Docker Engine avec Compose v2, au moins
-250 Go libres pour le profil pruned recommandé.
+Prérequis : Debian/Ubuntu 64 bits, Docker Engine avec Compose v2, et un disque
+de données d’au moins 160 Go pour le profil pruned recommandé à 100 Go.
+
+Chemin clé en main avec un disque déjà monté (le script ne formate rien) :
 
 ```bash
-./scripts/bootstrap.sh
-docker compose up -d --build
+./scripts/revive.sh --bitcoin-data /srv/nodi-data/bitcoin
 ```
+
+Pour reprendre le datadir d’un NOD-I v1 et activer explicitement le mineur dans
+le même lancement :
+
+```bash
+./scripts/revive.sh \
+  --bitcoin-data /srv/nodi-data/hdd/app-data/btc/.bitcoin \
+  --miner-address bc1q_votre_adresse
+```
+
+Le lancement manuel reste possible avec `./scripts/bootstrap.sh`, puis
+`docker compose up -d --build`.
 
 Le cockpit devient disponible sur `http://ADRESSE_DU_BOITIER:8080`. Le port P2P
 Bitcoin `8333` est publié ; le RPC `8332` reste uniquement sur le réseau Docker
-privé. Les données survivent aux redémarrages dans les volumes `bitcoin-data`
-`store-data` et `miner-data`.
+privé. Les données survivent aux redémarrages dans le volume `bitcoin-data` ou
+le datadir hôte choisi avec `BITCOIN_DATA_PATH`, ainsi que dans `store-data` et
+`miner-data`.
 
 Consultez [le runbook](docs/RUNBOOK.md) avant une installation réelle.
 
@@ -125,8 +139,8 @@ docker compose config
 
 | Capacité | État MVP | Limite connue |
 |---|---|---|
-| Bitcoin Core | image ARM64/AMD64, checksum vérifié, suivi RPC | synchronisation réelle à tester sur plusieurs boîtiers |
-| Mineur loterie | build source épinglé, opt-in, pause thermique | pas une promesse de rendement |
+| Bitcoin Core | image ARM64/AMD64, reprise et pruning d’un datadir 783 Go validés sur NOD-I v1 | synchronisation à tester sur les autres révisions |
+| Mineur loterie | build ARM64 validé, opt-in, pool joignable et capteur thermique testé | activation réelle requiert une adresse de payout |
 | Store | catalogue, validation, propositions, vote, audit | identité locale non résistante aux attaques Sybil |
 | Installation d’app | demande enregistrée après approbation | packaging/revue encore manuels |
 | Écran | rendu PNG et pilote ST7789 testé sur un boîtier NOD-I v1 | brochage à revalider sur les autres révisions |

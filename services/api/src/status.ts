@@ -6,12 +6,18 @@ function demoEnabled(): boolean {
   return process.env.NODI_DEMO === 'true'
 }
 
+export function bitcoinRpcTimeoutMs(value: string | undefined): number {
+  const configured = Number(value ?? 15000)
+  return Number.isFinite(configured) && configured >= 1000 ? configured : 15000
+}
+
 async function bitcoinRpc<T>(method: string): Promise<T> {
   const url = process.env.BITCOIN_RPC_URL ?? 'http://127.0.0.1:8332'
   const user = process.env.BITCOIN_RPC_USER ?? 'nodi'
   const password = process.env.BITCOIN_RPC_PASSWORD ?? ''
+  const timeoutMs = bitcoinRpcTimeoutMs(process.env.BITCOIN_RPC_TIMEOUT_MS)
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 1800)
+  const timeout = setTimeout(() => controller.abort(), timeoutMs)
   try {
     const response = await fetch(url, {
       method: 'POST',

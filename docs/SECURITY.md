@@ -16,11 +16,13 @@ Le MVP ne gère ni seed ni clé privée et lance Bitcoin Core avec
 - seul le port web 8080 et le P2P Bitcoin 8333 sont publiés ;
 - le RPC 8332 reste sur le réseau Docker privé ;
 - l’API web ne monte jamais le Docker socket ;
-- le conteneur web perd toutes ses capabilities ; l’API ne reçoit que
-  `CAP_CHOWN`, `CAP_SETGID` et `CAP_SETUID` pendant son entrypoint afin
-  d’attribuer un volume neuf à l’utilisateur non privilégié `node`, puis
-  `gosu` abandonne l’identité root et ces capabilities avant de démarrer le
-  serveur HTTP ;
+- le conteneur web perd toutes ses capabilities ; les entrypoints de Bitcoin,
+  du mineur et de l’API ne reçoivent que les capacités nécessaires pour
+  préparer leurs volumes, puis `gosu` abandonne l’identité root et ces
+  capacités avant de démarrer le processus applicatif ;
+- Bitcoin reçoit en plus `CAP_DAC_READ_SEARCH` pendant cette préparation afin
+  de reprendre un ancien datadir root en mode `0700`. `bitcoind` s’exécute
+  ensuite sous l’UID dédié `10001`, sans cette capacité ;
 - le mineur est un profil Compose séparé, sans privilège et opt-in ;
 - l’écran ne fait que lire `/api/screen`.
 
@@ -52,7 +54,7 @@ publier une SBOM et faire vérifier les builds par CI.
 | faux votes | hachage et déduplication locale | identité non authentifiée/Sybil |
 | surchauffe minage | 1 thread, seuil 75 °C, pause automatique | capteur absent ou mal monté |
 | corruption store | écriture atomique, échec fermé | sauvegarde opérateur requise |
-| épuisement disque | prune 200000 MiB, métriques disque | pas encore d’alerte prédictive |
+| épuisement disque | prune 100000 MiB, métriques disque | pas encore d’alerte prédictive |
 
 ## Signaler une faille
 

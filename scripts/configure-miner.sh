@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+umask 077
 
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 env_file="$repo_dir/.env"

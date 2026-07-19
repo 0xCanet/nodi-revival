@@ -81,3 +81,50 @@ Avant de réutiliser une blockchain existante en lecture/écriture :
    par un ancien script ;
 5. démarrez Bitcoin avec `-disablewallet=1` et sans RPC public ;
 6. vérifiez la hauteur, les pairs, les logs et un redémarrage complet.
+
+### Procédure validée sur le boîtier de référence
+
+Après avoir accepté que les blocs sont retéléchargeables, contrôlez puis
+réparez le système de fichiers hors montage :
+
+```bash
+lsblk -f
+sudo e2fsck -p /dev/nvme0n1p1
+sudo install -d -m 0755 /srv/nodi-data
+sudo mount -o rw,noatime,nosuid,nodev,noexec \
+  /dev/nvme0n1p1 /srv/nodi-data
+findmnt /srv/nodi-data
+```
+
+Sur la révision observée, les services historiques suivants savaient modifier
+le NVMe ou relancer l’ancienne application. Inspectez leur présence avant de
+les désactiver :
+
+```bash
+systemctl list-unit-files 'nodi*'
+sudo systemctl disable --now \
+  nodi-nvme.service \
+  nodi-docker-recovery.service \
+  nodi-application-recovery.service \
+  nodi-stats.service
+```
+
+Utilisez l’UUID retourné par `lsblk -f` pour rendre le montage persistant. Ne
+copiez pas littéralement `VOTRE_UUID` :
+
+```fstab
+UUID=VOTRE_UUID /srv/nodi-data ext4 rw,noatime,nosuid,nodev,noexec,nofail,x-systemd.device-timeout=30s 0 2
+```
+
+La reprise logicielle devient alors une commande :
+
+```bash
+./scripts/revive.sh \
+  --bitcoin-data /srv/nodi-data/hdd/app-data/btc/.bitcoin
+```
+
+Bitcoin Core effectue au premier lancement la vérification de chainstate, puis
+la conversion pruned. Sur un datadir d’archive de plusieurs centaines de Go,
+la phase `Pruning blockstore…` peut utiliser un cœur pendant plusieurs minutes
+avant de libérer l’espace d’un seul coup. N’interrompez pas le conteneur tant
+que le processus consomme du CPU et que les logs ne signalent pas d’erreur.
